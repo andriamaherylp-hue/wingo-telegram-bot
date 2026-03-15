@@ -66,10 +66,10 @@ Choose a market :
 4️⃣ WinGo 5min
 
 Use :
-/predict 1
-/predict 2
-/predict 3
-/predict 4
+/predict1
+/predict2
+/predict3
+/predict4
 `,
 
 {
