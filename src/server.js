@@ -9,3 +9,7 @@ app.use(express.static('public'));
 app.listen(PORT, () => {
   console.log(`🚀 Serveur Express lancé sur http://localhost:${PORT}`);
 });
+
+app.get('/', (req, res) => {
+  res.send('Bot is running');
+});

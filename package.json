@@ -1,10 +1,10 @@
 {
   "name": "wingo-project-test",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Wingo Telegram Prediction Bot",
+  "main": "src/bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/bot.js"
   },
   "keywords": [],
   "author": "",
