@@ -1,0 +1,117 @@
+/* Style global */
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f9;
+  color: #333;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+}
+
+/* Titres */
+h1 {
+  color: #222;
+  margin-bottom: 10px;
+}
+
+h2 {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+/* Compteur */
+.countdown {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 15px 0;
+  color: #0077cc;
+}
+
+/* ID officiel */
+.id-display {
+  font-size: 1.2em;
+  margin: 10px 0;
+  color: #444;
+}
+
+#info {
+  font-size: 2em;
+  color: aqua;
+  
+}
+
+/* Boutons */
+.buttons {
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 6px;
+  background: #0077cc;
+  color: white;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #005fa3;
+}
+
+.active-btn {
+  background: #ff9800;
+}
+/* Bloc prédiction en bas */
+.next-prediction {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: left;
+  padding: 16px 24px;
+  background: #ffffff;
+  border-top: 3px solid #0077cc;
+  font-size: 1em;
+  font-weight: 500;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Mise en forme du texte */
+.next-prediction span {
+  display: inline-block;
+  margin-right: 12px;
+  font-weight: bold;
+}
+
+/* Couleurs dynamiques */
+.next-prediction.green {
+  background: #e8fbe8;
+  border-top-color: #2e7d32;
+  color: #2e7d32;
+}
+
+.next-prediction.red {
+  background: #fde8e8;
+  border-top-color: #c62828;
+  color: #c62828;
+}
+
+.next-prediction.violet {
+  background: #f3e8fd;
+  border-top-color: #6a1b9a;
+  color: #6a1b9a;
+}
+
+/* Effet d'animation quand la prédiction change */
+.next-prediction {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

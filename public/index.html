@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Wingo Predict</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Wingo Predict</h1>
+  <h2>Time Remaining</h2>
+
+  <!-- Compteur synchronisé -->
+  <div class="countdown" id="display">Loading...</div>
+
+  <!-- ID officiel de la période -->
+  <div class="id-display" id="info"></div>
+
+  <!-- Boutons -->
+  <div class="buttons">
+    <button id="btn1" onclick="setActiveChoice(1)">WinGo 30s</button>
+    <button id="btn2" onclick="setActiveChoice(2)">WinGo 1min</button>
+    <button id="btn3" onclick="setActiveChoice(3)">WinGo 3min</button>
+    <button id="btn4" onclick="setActiveChoice(4)">WinGo 5min</button>
+  </div>
+
+  <!-- Bloc prédiction détaillée en bas -->
+  <div class="next-prediction" id="nextPrediction">
+    Prochaine prédiction : en attente...
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
