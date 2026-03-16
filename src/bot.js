@@ -10,12 +10,39 @@ const channelId = '@jalwawinssjgame7';
 
 let autoRunning = true;
 
+
 // images BIG / SMALL
 const bigImage = path.join(__dirname,"../public/big.jpg");
 const smallImage = path.join(__dirname,"../public/small.jpg");
 
+
 // STICKER UNIQUE
 const predictionSticker = "CAACAgUAAxkBAAIDi2m36V2DW5fQFOzsbGdOVhe_r1ocAAJSAwAC0qoBVU3NipS4NOxCOgQ";
+
+
+// =============================
+// CONVERT PERIOD TO JALWA FORMAT
+// =============================
+
+function convertToJalwaPeriod(period){
+
+try{
+
+const [date,index] = period.split("-");
+
+const gameCode = "10001";
+
+const formattedIndex = index.padStart(4,"0");
+
+return `${date}${gameCode}${formattedIndex}`;
+
+}catch(e){
+
+return period;
+
+}
+
+}
 
 
 // =============================
@@ -24,10 +51,12 @@ const predictionSticker = "CAACAgUAAxkBAAIDi2m36V2DW5fQFOzsbGdOVhe_r1ocAAJSAwAC0
 
 function formatPrediction(datas, marketName){
 
+const jalwaPeriod = convertToJalwaPeriod(datas.period);
+
 return `
 🎰 Prediction for ${marketName.toUpperCase()} 🎰
 
-📅 Period: ${datas.period}
+📅 Period: ${jalwaPeriod}
 💸 Purchase: ${datas.bigSmall}
 
 🔮 Risky Predictions:
@@ -156,7 +185,7 @@ await bot.sendSticker(chatId,predictionSticker);
 
 }else{
 
-bot.sendMessage(chatId,message);
+await bot.sendMessage(chatId,message);
 
 }
 
@@ -178,11 +207,17 @@ bot.on("message", async (msg)=>{
 const chatId = msg.chat.id;
 const text = msg.text;
 
+if(!text) return;
+
+
+// GET PREDICTION
 
 if(text === "🔮 Get Prediction"){
 return sendPrediction(chatId,2);
 }
 
+
+// DASHBOARD ADMIN
 
 if(text === "📊 Dashboard"){
 
@@ -212,6 +247,8 @@ Admin Commands:
 }
 
 
+// prediction buttons
+
 if(text === "1️⃣ WinGo 30s"){
 return sendPrediction(chatId,1);
 }
@@ -229,6 +266,8 @@ return sendPrediction(chatId,4);
 }
 
 
+// register link
+
 if(text === "🔗 Register Link"){
 
 bot.sendMessage(chatId,
@@ -237,6 +276,8 @@ bot.sendMessage(chatId,
 
 }
 
+
+// prediction channel
 
 if(text === "📢 Prediction Channel"){
 
@@ -252,6 +293,9 @@ bot.sendMessage(chatId,
 // =============================
 // ADMIN COMMANDS
 // =============================
+
+
+// broadcast
 
 bot.onText(/\/broadcast (.+)/, async (msg, match)=>{
 
@@ -282,6 +326,8 @@ bot.sendMessage(msg.chat.id,"✅ Broadcast envoyé");
 });
 
 
+// stats
+
 bot.onText(/\/stat/, (msg)=>{
 
 if(msg.chat.id !== ADMIN_ID) return;
@@ -301,6 +347,8 @@ bot.sendMessage(msg.chat.id,
 });
 
 
+// stop auto
+
 bot.onText(/\/stopauto/, (msg)=>{
 
 if(msg.chat.id !== ADMIN_ID) return;
@@ -311,6 +359,8 @@ bot.sendMessage(msg.chat.id,"⛔ Auto prediction stopped");
 
 });
 
+
+// start auto
 
 bot.onText(/\/startauto/, (msg)=>{
 
@@ -356,7 +406,7 @@ await bot.sendSticker(channelId,predictionSticker);
 
 }else{
 
-bot.sendMessage(channelId,message);
+await bot.sendMessage(channelId,message);
 
 }
 
@@ -410,6 +460,11 @@ startAutoPrediction("0.5","WinGo 30s");
 startAutoPrediction("1","WinGo 1min");
 startAutoPrediction("3","WinGo 3min");
 startAutoPrediction("5","WinGo 5min");
+
+
+// =============================
+// STICKER DEBUG
+// =============================
 
 bot.on("sticker", (msg) => {
 console.log("Sticker ID:", msg.sticker.file_id);
