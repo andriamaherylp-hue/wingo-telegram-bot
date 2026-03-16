@@ -24,17 +24,24 @@ const predictionSticker = "CAACAgUAAxkBAAIDi2m36V2DW5fQFOzsbGdOVhe_r1ocAAJSAwAC0
 // CONVERT PERIOD TO JALWA FORMAT
 // =============================
 
-function convertToJalwaPeriod(period){
+function convertToJalwaPeriod(period, market){
 
 try{
 
 const [date,index] = period.split("-");
 
-const gameCode = "10001";
+const gameCode = "1000";
+
+let marketCode = "1";
+
+if(market === "0.5") marketCode = "5";
+if(market === "1") marketCode = "1";
+if(market === "3") marketCode = "2";
+if(market === "5") marketCode = "3";
 
 const formattedIndex = index.padStart(4,"0");
 
-return `${date}${gameCode}${formattedIndex}`;
+return `${date}${gameCode}${marketCode}${formattedIndex}`;
 
 }catch(e){
 
@@ -49,9 +56,9 @@ return period;
 // DESIGN MESSAGE
 // =============================
 
-function formatPrediction(datas, marketName){
+function formatPrediction(datas, marketName, market){
 
-const jalwaPeriod = convertToJalwaPeriod(datas.period);
+const jalwaPeriod = convertToJalwaPeriod(datas.period, market);
 
 return `
 🎰 Prediction for ${marketName.toUpperCase()} 🎰
@@ -162,7 +169,11 @@ try{
 
 const datas = await fetchPrediction(marketMap[choice].market);
 
-const message = formatPrediction(datas,marketMap[choice].name);
+const message = formatPrediction(
+datas,
+marketMap[choice].name,
+marketMap[choice].market
+);
 
 
 // IMAGE + STICKER UNIQUEMENT POUR WINGO 1 MIN
@@ -210,14 +221,10 @@ const text = msg.text;
 if(!text) return;
 
 
-// GET PREDICTION
-
 if(text === "🔮 Get Prediction"){
 return sendPrediction(chatId,2);
 }
 
-
-// DASHBOARD ADMIN
 
 if(text === "📊 Dashboard"){
 
@@ -247,8 +254,6 @@ Admin Commands:
 }
 
 
-// prediction buttons
-
 if(text === "1️⃣ WinGo 30s"){
 return sendPrediction(chatId,1);
 }
@@ -266,8 +271,6 @@ return sendPrediction(chatId,4);
 }
 
 
-// register link
-
 if(text === "🔗 Register Link"){
 
 bot.sendMessage(chatId,
@@ -277,8 +280,6 @@ bot.sendMessage(chatId,
 }
 
 
-// prediction channel
-
 if(text === "📢 Prediction Channel"){
 
 bot.sendMessage(chatId,
@@ -286,89 +287,6 @@ bot.sendMessage(chatId,
 );
 
 }
-
-});
-
-
-// =============================
-// ADMIN COMMANDS
-// =============================
-
-
-// broadcast
-
-bot.onText(/\/broadcast (.+)/, async (msg, match)=>{
-
-if(msg.chat.id !== ADMIN_ID) return;
-
-const message = match[1];
-
-const users = getUsers();
-
-for(const user of users){
-
-try{
-
-await bot.sendMessage(user,message);
-
-await new Promise(r=>setTimeout(r,50));
-
-}catch(e){
-
-console.log("User blocked bot",user);
-
-}
-
-}
-
-bot.sendMessage(msg.chat.id,"✅ Broadcast envoyé");
-
-});
-
-
-// stats
-
-bot.onText(/\/stat/, (msg)=>{
-
-if(msg.chat.id !== ADMIN_ID) return;
-
-const users = getUsers();
-
-bot.sendMessage(msg.chat.id,
-
-`📊 BOT STATISTICS
-
-👥 Total Users: ${users.length}
-⚡ Bot Status: Running
-`
-
-);
-
-});
-
-
-// stop auto
-
-bot.onText(/\/stopauto/, (msg)=>{
-
-if(msg.chat.id !== ADMIN_ID) return;
-
-autoRunning = false;
-
-bot.sendMessage(msg.chat.id,"⛔ Auto prediction stopped");
-
-});
-
-
-// start auto
-
-bot.onText(/\/startauto/, (msg)=>{
-
-if(msg.chat.id !== ADMIN_ID) return;
-
-autoRunning = true;
-
-bot.sendMessage(msg.chat.id,"✅ Auto prediction started");
 
 });
 
@@ -385,7 +303,7 @@ try{
 
 const datas = await fetchPrediction(market);
 
-const message = formatPrediction(datas,marketName);
+const message = formatPrediction(datas,marketName,market);
 
 
 if(market === "1"){
