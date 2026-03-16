@@ -4,7 +4,7 @@
   "description": "Wingo Telegram Prediction Bot",
   "main": "src/bot.js",
   "scripts": {
-    "start": "node src/bot.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
