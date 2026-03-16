@@ -1,67 +1,149 @@
 // Importation du package node-fetch
 const fetch = require('node-fetch');
 
-// Fonction pour récupérer la prédiction
+// =============================
+// FONCTION CALCUL PERIODE IST
+// =============================
+
+function generatePeriod(market){
+
+  const now = new Date();
+
+  // convertir en heure Inde (IST UTC+5:30)
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istTime = new Date(now.getTime() + istOffset);
+
+  const y = istTime.getFullYear();
+  const m = String(istTime.getMonth() + 1).padStart(2,"0");
+  const d = String(istTime.getDate()).padStart(2,"0");
+
+  const date = `${y}${m}${d}`;
+
+  const seconds =
+    istTime.getHours()*3600 +
+    istTime.getMinutes()*60 +
+    istTime.getSeconds();
+
+  let index = 0;
+
+  if(market === "0.5"){      // 30 secondes
+    index = Math.floor(seconds / 30);
+  }
+
+  if(market === "1"){        // 1 minute
+    index = Math.floor(seconds / 60);
+  }
+
+  if(market === "3"){        // 3 minutes
+    index = Math.floor(seconds / 180);
+  }
+
+  if(market === "5"){        // 5 minutes
+    index = Math.floor(seconds / 300);
+  }
+
+  index = index + 1;
+
+  return `${date}-${index}`;
+
+}
+
+
+// =============================
+// FETCH PREDICTION
+// =============================
+
 async function fetchPrediction(market) {
+
   try {
+
     console.log(`Appel à l'API de prédiction pour le marché: ${market}`);
 
-    // Appel à l'API de prédiction
-    const response = await fetch(`https://indialotteryapi.com/wp-json/wingo/v1/predict?market=${market}`);
-    
-    // Vérification de la réponse de l'API
+    const response = await fetch(
+      `https://indialotteryapi.com/wp-json/wingo/v1/predict?market=${market}`
+    );
+
     if (!response.ok) {
       throw new Error(`Erreur API Predict: ${response.statusText}`);
     }
 
-    // Transformation de la réponse en JSON
     const data = await response.json();
 
-    // Log des données reçues pour déboguer
     console.log("Données reçues de l'API Prediction:", data);
 
-    // Vérification de la présence des données
     if (data.items && data.items.length > 0) {
-      return data.items[0];  // Retourner les données de la première prédiction
+
+      const item = data.items[0];
+
+      // recalculer la vraie période
+      item.period = generatePeriod(market);
+
+      return item;
+
     } else {
-      throw new Error('Aucune donnée dans la réponse de l\'API Predict');
+
+      throw new Error("Aucune donnée dans la réponse de l'API Predict");
+
     }
+
   } catch (error) {
+
     console.error("Erreur lors de la récupération de la prédiction:", error);
-    throw error;  // Rejeter l'erreur pour qu'elle soit gérée par le bot
+
+    throw error;
+
   }
+
 }
 
-// Fonction pour récupérer la période suivante
+
+// =============================
+// FETCH NEXT PERIOD
+// =============================
+
 async function fetchNextPeriod(market) {
+
   try {
+
     console.log(`Appel à l'API pour la période suivante pour le marché: ${market}`);
 
-    // Appel à l'API de la prochaine période
-    const response = await fetch(`https://indialotteryapi.com/wp-json/wingo/v1/next?market=${market}`);
-    
-    // Vérification de la réponse de l'API
+    const response = await fetch(
+      `https://indialotteryapi.com/wp-json/wingo/v1/next?market=${market}`
+    );
+
     if (!response.ok) {
       throw new Error(`Erreur API Next: ${response.statusText}`);
     }
 
-    // Transformation de la réponse en JSON
     const data = await response.json();
-    
-    // Log des données reçues pour déboguer
+
     console.log("Données reçues de l'API Next:", data);
 
-    // Vérification de la présence des données
-    if (data.idx && data.remain && data.ymd) {
-      return data;  // Retourner les données de la période suivante
+    if (data.remain) {
+
+      return {
+        remain: data.remain
+      };
+
     } else {
-      throw new Error('Aucune donnée valide dans la réponse de l\'API Next');
+
+      throw new Error("Aucune donnée valide dans l'API Next");
+
     }
+
   } catch (error) {
+
     console.error("Erreur lors de la récupération de la période suivante:", error);
-    throw error;  // Rejeter l'erreur pour qu'elle soit gérée par le bot
+
+    throw error;
+
   }
+
 }
 
-// Exporter les deux fonctions
+
+// =============================
+// EXPORT
+// =============================
+
 module.exports = { fetchPrediction, fetchNextPeriod };
