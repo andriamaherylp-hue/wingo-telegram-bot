@@ -2,12 +2,20 @@ const TelegramBot = require('node-telegram-bot-api');
 const { TELEGRAM_TOKEN, ADMIN_ID } = require('../config/config');
 const { fetchPrediction, fetchNextPeriod } = require('./api');
 const { addUser, getUsers } = require('./users');
+const path = require("path");
 
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 const channelId = '@jalwawinssjgame7';
 
 let autoRunning = true;
+
+// images BIG / SMALL
+const bigImage = path.join(__dirname,"../public/big.jpg");
+const smallImage = path.join(__dirname,"../public/small.jpg");
+
+// STICKER UNIQUE
+const predictionSticker = "CAACAgUAAxkBAAIDi2m36V2DW5fQFOzsbGdOVhe_r1ocAAJSAwAC0qoBVU3NipS4NOxCOgQ";
 
 
 // =============================
@@ -74,7 +82,6 @@ bot.onText(/\/start/, (msg) => {
 
 const chatId = msg.chat.id;
 
-// enregistrer utilisateur
 addUser(chatId);
 
 if(chatId === ADMIN_ID){
@@ -128,7 +135,30 @@ const datas = await fetchPrediction(marketMap[choice].market);
 
 const message = formatPrediction(datas,marketMap[choice].name);
 
+
+// IMAGE + STICKER UNIQUEMENT POUR WINGO 1 MIN
+
+if(choice === 2){
+
+let imageToSend;
+
+if(datas.bigSmall.toLowerCase() === "big"){
+imageToSend = bigImage;
+}else{
+imageToSend = smallImage;
+}
+
+await bot.sendPhoto(chatId,imageToSend,{
+caption: message
+});
+
+await bot.sendSticker(chatId,predictionSticker);
+
+}else{
+
 bot.sendMessage(chatId,message);
+
+}
 
 }catch(e){
 
@@ -149,14 +179,10 @@ const chatId = msg.chat.id;
 const text = msg.text;
 
 
-// GET PREDICTION
-
 if(text === "🔮 Get Prediction"){
-return sendPrediction(chatId,1);
+return sendPrediction(chatId,2);
 }
 
-
-// DASHBOARD ADMIN
 
 if(text === "📊 Dashboard"){
 
@@ -186,8 +212,6 @@ Admin Commands:
 }
 
 
-// prediction buttons
-
 if(text === "1️⃣ WinGo 30s"){
 return sendPrediction(chatId,1);
 }
@@ -205,8 +229,6 @@ return sendPrediction(chatId,4);
 }
 
 
-// register link
-
 if(text === "🔗 Register Link"){
 
 bot.sendMessage(chatId,
@@ -215,8 +237,6 @@ bot.sendMessage(chatId,
 
 }
 
-
-// prediction channel
 
 if(text === "📢 Prediction Channel"){
 
@@ -233,9 +253,6 @@ bot.sendMessage(chatId,
 // ADMIN COMMANDS
 // =============================
 
-
-// broadcast message
-
 bot.onText(/\/broadcast (.+)/, async (msg, match)=>{
 
 if(msg.chat.id !== ADMIN_ID) return;
@@ -250,7 +267,6 @@ try{
 
 await bot.sendMessage(user,message);
 
-// éviter spam API
 await new Promise(r=>setTimeout(r,50));
 
 }catch(e){
@@ -265,8 +281,6 @@ bot.sendMessage(msg.chat.id,"✅ Broadcast envoyé");
 
 });
 
-
-// statistics
 
 bot.onText(/\/stat/, (msg)=>{
 
@@ -287,8 +301,6 @@ bot.sendMessage(msg.chat.id,
 });
 
 
-// stop auto prediction
-
 bot.onText(/\/stopauto/, (msg)=>{
 
 if(msg.chat.id !== ADMIN_ID) return;
@@ -299,8 +311,6 @@ bot.sendMessage(msg.chat.id,"⛔ Auto prediction stopped");
 
 });
 
-
-// start auto prediction
 
 bot.onText(/\/startauto/, (msg)=>{
 
@@ -327,7 +337,28 @@ const datas = await fetchPrediction(market);
 
 const message = formatPrediction(datas,marketName);
 
+
+if(market === "1"){
+
+let imageToSend;
+
+if(datas.bigSmall.toLowerCase() === "big"){
+imageToSend = bigImage;
+}else{
+imageToSend = smallImage;
+}
+
+await bot.sendPhoto(channelId,imageToSend,{
+caption: message
+});
+
+await bot.sendSticker(channelId,predictionSticker);
+
+}else{
+
 bot.sendMessage(channelId,message);
+
+}
 
 }catch(e){
 
@@ -379,6 +410,10 @@ startAutoPrediction("0.5","WinGo 30s");
 startAutoPrediction("1","WinGo 1min");
 startAutoPrediction("3","WinGo 3min");
 startAutoPrediction("5","WinGo 5min");
+
+bot.on("sticker", (msg) => {
+console.log("Sticker ID:", msg.sticker.file_id);
+});
 
 
 module.exports = bot;
