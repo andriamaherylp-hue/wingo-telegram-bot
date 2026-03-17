@@ -42,7 +42,7 @@ const adminKeyboard = {
 };
 
 // =============================
-// MENU PREDICTION (INLINE)
+// MENU PREDICTION
 // =============================
 const predictionMenu = {
   reply_markup:{
@@ -91,49 +91,18 @@ const marketMap = {
 };
 
 // =============================
-// FORMAT PERIOD
-// =============================
-function convertToJalwaPeriod(period, market){
-  try{
-    const [date,index] = period.split("-");
-    const gameCode = "1000";
-
-    let marketCode = "1";
-    if(market === "0.5") marketCode = "5";
-    if(market === "1") marketCode = "1";
-    if(market === "3") marketCode = "2";
-    if(market === "5") marketCode = "3";
-
-    const formattedIndex = index.padStart(4,"0");
-    return `${date}${gameCode}${marketCode}${formattedIndex}`;
-
-  }catch(e){
-    return period;
-  }
-}
-
-// =============================
 // FORMAT MESSAGE
 // =============================
 function formatPrediction(datas, marketName, market){
 
-  const jalwaPeriod = convertToJalwaPeriod(datas.period, market);
-
   return `
 🎰 Prediction for ${marketName.toUpperCase()} 🎰
 
-📅 Period: ${jalwaPeriod}
+📅 Period: ${datas.period}
 💸 Purchase: ${datas.bigSmall}
 
-🔮 Risky Predictions:
-👉🏻 Colour: ${datas.color}
-👉🏻 Numbers: ${datas.digit} or ${datas.digit + 1}
-
-💡 Strategy Tip:
-Use the 2x strategy for better chances.
-
-📊 Fund Management:
-Always play with management.
+🔮 Colour: ${datas.color}
+🔢 Numbers: ${datas.digit} or ${datas.digit + 1}
 `;
 }
 
@@ -147,7 +116,6 @@ async function sendPrediction(chatId,choice){
   }
 
   try{
-
     const datas = await fetchPrediction(marketMap[choice].market);
 
     const message = formatPrediction(
@@ -156,15 +124,12 @@ async function sendPrediction(chatId,choice){
       marketMap[choice].market
     );
 
-    // IMAGE SEULEMENT POUR 1 MIN
     if(choice === 2){
-
       let imageToSend =
         datas.bigSmall.toLowerCase() === "big" ? bigImage : smallImage;
 
       await bot.sendPhoto(chatId,imageToSend,{ caption: message });
       await bot.sendSticker(chatId,predictionSticker);
-
     } else {
       await bot.sendMessage(chatId,message);
     }
@@ -175,7 +140,7 @@ async function sendPrediction(chatId,choice){
 }
 
 // =============================
-// MESSAGE HANDLER (CORRIGÉ)
+// MESSAGE HANDLER
 // =============================
 bot.on("message", async (msg)=>{
 
@@ -184,71 +149,49 @@ bot.on("message", async (msg)=>{
 
   if(!text) return;
 
-  // 🔥 MENU PREDICTION
   if(text === "🔮 Get Prediction"){
     return bot.sendMessage(chatId,"🏪 Choose Market",predictionMenu);
   }
 
-  // DASHBOARD
   if(text === "📊 Dashboard"){
+    if(chatId !== ADMIN_ID) return;
 
-  if(chatId !== ADMIN_ID) return;
+    const users = getUsers();
 
-  const users = getUsers();
-
-  bot.sendMessage(chatId,
-
+    bot.sendMessage(chatId,
 `📊 ADMIN DASHBOARD
 
-🤖 Bot Status: ✅ Running
-👥 Total Users: ${users.length}
-📡 Auto Predictions: OFF
-📢 Channel: ${channelId}
+👥 Users: ${users.length}
 
-Admin Commands:
-
-/broadcast MESSAGE
-/broadcast_photo FILEID|CAPTION|LINK
-/broadcast_video FILEID|CAPTION
-/broadcast_doc FILEID|CAPTION
+Commands:
+/broadcast
+/broadcast_photo
+/broadcast_video
+/broadcast_doc
 /stat
-`
-  );
-
-}
-
-  // REGISTER
-  if(text === "🔗 Register Link"){
-    bot.sendMessage(chatId,
-"🔗 https://okwin.bio/#/register?invitationCode=75541615988"
-    );
+`);
   }
 
-  // CHANNEL
+  if(text === "🔗 Register Link"){
+    bot.sendMessage(chatId,"https://okwin.bio/#/register?invitationCode=75541615988");
+  }
+
   if(text === "📢 Prediction Channel"){
-    bot.sendMessage(chatId,
-"📢 https://t.me/vipokwinbig"
-    );
+    bot.sendMessage(chatId,"https://t.me/vipokwinbig");
   }
 
 });
 
 // =============================
-// INLINE BUTTON CLICK
+// INLINE CLICK
 // =============================
 bot.on("callback_query", async (query) => {
 
   const chatId = query.message.chat.id;
-  const data = query.data;
+  const choice = parseInt(query.data.split("_")[1]);
 
-  if(data.startsWith("pred_")){
-    const choice = parseInt(data.split("_")[1]);
-
-    await sendPrediction(chatId, choice);
-
-    bot.answerCallbackQuery(query.id);
-  }
-
+  await sendPrediction(chatId, choice);
+  bot.answerCallbackQuery(query.id);
 });
 
 // =============================
@@ -259,9 +202,9 @@ function sleep(ms){
 }
 
 // =============================
-// BROADCAST PHOTO (CORRIGÉ)
+// BROADCAST TEXT (FIX)
 // =============================
-bot.onText(/\/broadcast_photo ([\s\S]+)/, async (msg, match) => {
+bot.onText(/\/broadcast/, async (msg) => {
 
 const chatId = msg.chat.id;
 
@@ -269,23 +212,40 @@ if(chatId !== ADMIN_ID){
 return bot.sendMessage(chatId,"❌ Unauthorized");
 }
 
+const message = msg.text.replace('/broadcast','').trim();
+
+if(!message){
+return bot.sendMessage(chatId,"❌ Add message");
+}
+
+const users = getUsers();
+
+for(const userId of users){
+await bot.sendMessage(userId, message);
+await sleep(50);
+}
+
+await bot.sendMessage(channelId, message);
+
+bot.sendMessage(chatId,"✅ Broadcast done");
+
+});
+
+// =============================
+// BROADCAST PHOTO
+// =============================
+bot.onText(/\/broadcast_photo ([\s\S]+)/, async (msg, match) => {
+
+const chatId = msg.chat.id;
+if(chatId !== ADMIN_ID) return;
+
 const parts = match[1].split("|");
 
 const fileId = parts[0]?.trim();
 const caption = parts[1]?.trim() || "";
 const link = parts[2]?.trim() || "";
-const buttonText = parts[3]?.trim() || "📲 Download now";
+const buttonText = parts[3]?.trim() || "📲 Download";
 
-if(!fileId){
-return bot.sendMessage(chatId,"❌ Format incorrect");
-}
-
-const users = getUsers();
-
-let success = 0;
-let failed = 0;
-
-// 👉 bouton inline
 const keyboard = link ? {
   reply_markup:{
     inline_keyboard:[
@@ -294,36 +254,71 @@ const keyboard = link ? {
   }
 } : {};
 
+const users = getUsers();
+
 for(const userId of users){
-
-try{
-await bot.sendPhoto(userId, fileId, {
-  caption,
-  ...keyboard
-});
-success++;
-}catch(e){
-failed++;
-}
-
+await bot.sendPhoto(userId,fileId,{ caption,...keyboard });
 await sleep(50);
-
 }
 
-// 👉 envoi aussi dans le canal
-await bot.sendPhoto(channelId, fileId, {
-  caption,
-  ...keyboard
-});
+await bot.sendPhoto(channelId,fileId,{ caption,...keyboard });
 
-bot.sendMessage(chatId,
-`📢 Broadcast photo terminé
-✅ ${success} | ❌ ${failed}`
-);
+bot.sendMessage(chatId,"✅ Photo broadcast done");
 
 });
 
 // =============================
-// EXPORT
+// BROADCAST VIDEO
 // =============================
+bot.onText(/\/broadcast_video ([\s\S]+)/, async (msg, match) => {
+
+const parts = match[1].split("|");
+const fileId = parts[0]?.trim();
+const caption = parts[1]?.trim() || "";
+
+const users = getUsers();
+
+for(const userId of users){
+await bot.sendVideo(userId,fileId,{ caption });
+await sleep(50);
+}
+
+await bot.sendVideo(channelId,fileId,{ caption });
+
+});
+
+// =============================
+// BROADCAST DOC
+// =============================
+bot.onText(/\/broadcast_doc ([\s\S]+)/, async (msg, match) => {
+
+const parts = match[1].split("|");
+const fileId = parts[0]?.trim();
+const caption = parts[1]?.trim() || "";
+
+const users = getUsers();
+
+for(const userId of users){
+await bot.sendDocument(userId,fileId,{ caption });
+await sleep(50);
+}
+
+await bot.sendDocument(channelId,fileId,{ caption });
+
+});
+
+// =============================
+// STAT
+// =============================
+bot.onText(/\/stat/, (msg) => {
+
+const chatId = msg.chat.id;
+if(chatId !== ADMIN_ID) return;
+
+const users = getUsers();
+
+bot.sendMessage(chatId,`👥 Users: ${users.length}`);
+
+});
+
 module.exports = bot;
