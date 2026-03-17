@@ -500,5 +500,26 @@ bot.on("sticker", (msg) => {
 console.log("Sticker ID:", msg.sticker.file_id);
 });
 
+// =============================
+// DEBUG FILE ID (PHOTO / VIDEO / DOC)
+// =============================
+
+bot.on("message", (msg) => {
+
+if(msg.photo){
+const fileId = msg.photo[msg.photo.length - 1].file_id;
+console.log("📸 Photo file_id:", fileId);
+}
+
+if(msg.video){
+console.log("🎥 Video file_id:", msg.video.file_id);
+}
+
+if(msg.document){
+console.log("📄 Document file_id:", msg.document.file_id);
+}
+
+});
+
 
 module.exports = bot;
