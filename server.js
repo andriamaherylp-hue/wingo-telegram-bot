@@ -33,7 +33,7 @@ app.post(`/bot${TELEGRAM_TOKEN}`, (req, res) => {
 
 // test route
 app.get('/', (req, res) => {
-  res.send('✅ Wingo Bot is running (Webhook OK)');
+  res.sendFile(__dirname + '/public/index.html');
 });
 
 // start server
