@@ -1,6 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { TELEGRAM_TOKEN, ADMIN_ID } = require('../config/config');
-const { fetchPrediction, fetchNextPeriod } = require('./api');
+const { fetchPrediction } = require('./api');
 const { addUser, getUsers } = require('./users');
 const path = require("path");
 
@@ -8,7 +8,7 @@ const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 const channelId = '@jalwawinssjgame7';
 
-let autoRunning = true;
+let autoRunning = false; // désactivé
 
 
 // images BIG / SMALL
@@ -238,15 +238,13 @@ bot.sendMessage(chatId,
 
 🤖 Bot Status: ✅ Running
 👥 Total Users: ${users.length}
-📡 Auto Predictions: ${autoRunning ? "Active" : "Stopped"}
+📡 Auto Predictions: OFF
 📢 Channel: ${channelId}
 
 Admin Commands:
 
 /broadcast MESSAGE
 /stat
-/stopauto
-/startauto
 `
 
 );
@@ -289,95 +287,6 @@ bot.sendMessage(chatId,
 }
 
 });
-
-
-// =============================
-// AUTO PREDICTION
-// =============================
-
-async function autoPrediction(market,marketName){
-
-if(!autoRunning) return;
-
-try{
-
-const datas = await fetchPrediction(market);
-
-const message = formatPrediction(datas,marketName,market);
-
-
-if(market === "1"){
-
-let imageToSend;
-
-if(datas.bigSmall.toLowerCase() === "big"){
-imageToSend = bigImage;
-}else{
-imageToSend = smallImage;
-}
-
-await bot.sendPhoto(channelId,imageToSend,{
-caption: message
-});
-
-await bot.sendSticker(channelId,predictionSticker);
-
-}else{
-
-await bot.sendMessage(channelId,message);
-
-}
-
-}catch(e){
-
-console.log("Auto prediction error",e);
-
-}
-
-}
-
-
-// =============================
-// SYNCHRONIZED TIMER
-// =============================
-
-async function startAutoPrediction(market,marketName){
-
-try{
-
-const next = await fetchNextPeriod(market);
-
-const wait = next.remain * 1000;
-
-console.log(`${marketName} next prediction in ${next.remain}s`);
-
-setTimeout(async ()=>{
-
-await autoPrediction(market,marketName);
-
-startAutoPrediction(market,marketName);
-
-},wait);
-
-}catch(e){
-
-console.log("Timer sync error",e);
-
-setTimeout(()=>startAutoPrediction(market,marketName),10000);
-
-}
-
-}
-
-
-// =============================
-// START AUTO SYSTEM
-// =============================
-
-startAutoPrediction("0.5","WinGo 30s");
-startAutoPrediction("1","WinGo 1min");
-startAutoPrediction("3","WinGo 3min");
-startAutoPrediction("5","WinGo 5min");
 
 
 // =============================
