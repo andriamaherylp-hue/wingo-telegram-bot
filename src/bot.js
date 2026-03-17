@@ -299,7 +299,7 @@ function sleep(ms){
 
 
 // =============================
-// BROADCAST TEXTE (MULTI-LIGNE)
+// BROADCAST TEXTE (MULTI-LIGNE + CHANNEL)
 // =============================
 
 bot.onText(/\/broadcast ([\s\S]+)/, async (msg, match) => {
@@ -316,6 +316,7 @@ const users = getUsers();
 let success = 0;
 let failed = 0;
 
+// USERS
 for(const userId of users){
 
 try{
@@ -323,15 +324,23 @@ await bot.sendMessage(userId, message, {
 parse_mode: "HTML",
 disable_web_page_preview: false
 });
-
 success++;
 
 }catch(e){
 failed++;
 }
 
-await sleep(50); // anti-ban
+await sleep(50);
+}
 
+// CHANNEL
+try{
+await bot.sendMessage(channelId, message, {
+parse_mode: "HTML",
+disable_web_page_preview: false
+});
+}catch(e){
+console.log("Channel error:", e);
 }
 
 bot.sendMessage(chatId,
@@ -339,14 +348,15 @@ bot.sendMessage(chatId,
 
 ✅ Envoyé: ${success}
 ❌ Échoué: ${failed}
-👥 Total: ${users.length}`
+👥 Total: ${users.length}
+📡 Channel: OK`
 );
 
 });
 
 
 // =============================
-// BROADCAST PHOTO + TEXTE + BOUTON
+// BROADCAST PHOTO + CHANNEL
 // =============================
 
 bot.onText(/\/broadcast_photo (.+)/, async (msg, match) => {
@@ -357,7 +367,6 @@ if(chatId !== ADMIN_ID){
 return bot.sendMessage(chatId,"❌ Unauthorized");
 }
 
-// Format attendu : file_id|texte|lien
 const parts = match[1].split("|");
 
 const fileId = parts[0];
@@ -369,6 +378,7 @@ const users = getUsers();
 let success = 0;
 let failed = 0;
 
+// USERS
 for(const userId of users){
 
 try{
@@ -389,16 +399,29 @@ failed++;
 }
 
 await sleep(50);
-
 }
 
-bot.sendMessage(chatId,`📢 Photo broadcast terminé\n✅ ${success} | ❌ ${failed}`);
+// CHANNEL
+try{
+await bot.sendPhoto(channelId, fileId, {
+caption: caption,
+reply_markup: link ? {
+inline_keyboard: [[
+{ text: "🔗 Register Now", url: link }
+]]
+} : undefined
+});
+}catch(e){
+console.log("Channel error:", e);
+}
+
+bot.sendMessage(chatId,`📢 Photo broadcast terminé\n✅ ${success} | ❌ ${failed} | 📡 Channel OK`);
 
 });
 
 
 // =============================
-// BROADCAST VIDEO
+// BROADCAST VIDEO + CHANNEL
 // =============================
 
 bot.onText(/\/broadcast_video (.+)/, async (msg, match) => {
@@ -416,23 +439,44 @@ const caption = parts[1] || "";
 
 const users = getUsers();
 
+let success = 0;
+let failed = 0;
+
+// 🔥 ENVOI AUX UTILISATEURS
 for(const userId of users){
 
 try{
 await bot.sendVideo(userId, fileId, { caption });
-}catch(e){}
+success++;
+}catch(e){
+failed++;
+}
 
-await sleep(50);
+await sleep(50); // anti-ban
 
 }
 
-bot.sendMessage(chatId,"📢 Video broadcast envoyé");
+// 🔥 ENVOI DANS LE CHANNEL
+try{
+await bot.sendVideo(channelId, fileId, { caption });
+}catch(e){
+console.log("Channel error:", e);
+}
+
+bot.sendMessage(chatId,
+`📢 Video broadcast terminé
+
+✅ Envoyé: ${success}
+❌ Échoué: ${failed}
+👥 Total: ${users.length}
+📡 Channel: OK`
+);
 
 });
 
 
 // =============================
-// BROADCAST DOCUMENT
+// BROADCAST DOCUMENT + CHANNEL
 // =============================
 
 bot.onText(/\/broadcast_doc (.+)/, async (msg, match) => {
@@ -450,6 +494,7 @@ const caption = parts[1] || "";
 
 const users = getUsers();
 
+// USERS
 for(const userId of users){
 
 try{
@@ -457,13 +502,18 @@ await bot.sendDocument(userId, fileId, { caption });
 }catch(e){}
 
 await sleep(50);
-
 }
 
-bot.sendMessage(chatId,"📢 Document broadcast envoyé");
+// CHANNEL
+try{
+await bot.sendDocument(channelId, fileId, { caption });
+}catch(e){
+console.log("Channel error:", e);
+}
+
+bot.sendMessage(chatId,"📢 Document broadcast envoyé + Channel OK");
 
 });
-
 
 // =============================
 // STATS
