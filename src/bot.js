@@ -387,7 +387,7 @@ await bot.sendPhoto(userId, fileId, {
 caption: caption,
 reply_markup: link ? {
 inline_keyboard: [[
-{ text: "🔗 Register Now", url: link }
+{ text: "📲 Download now", url: link }
 ]]
 } : undefined
 });
