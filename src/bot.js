@@ -18,7 +18,7 @@ const smallImage = path.join(__dirname,"../public/small.jpg");
 const predictionSticker = "CAACAgUAAxkBAAIDi2m36V2DW5fQFOzsbGdOVhe_r1ocAAJSAwAC0qoBVU3NipS4NOxCOgQ";
 
 // =============================
-// MENU PRINCIPAL (CORRIGÉ)
+// MENU PRINCIPAL 
 // =============================
 const userKeyboard = {
   reply_markup:{
@@ -259,11 +259,9 @@ function sleep(ms){
 }
 
 // =============================
-// BROADCAST (INCHANGÉ)
+// BROADCAST PHOTO (CORRIGÉ)
 // =============================
-// (je n’ai rien modifié ici pour respecter ta logique)
-
-bot.onText(/\/broadcast ([\s\S]+)/, async (msg, match) => {
+bot.onText(/\/broadcast_photo ([\s\S]+)/, async (msg, match) => {
 
 const chatId = msg.chat.id;
 
@@ -271,26 +269,55 @@ if(chatId !== ADMIN_ID){
 return bot.sendMessage(chatId,"❌ Unauthorized");
 }
 
-const message = match[1];
+const parts = match[1].split("|");
+
+const fileId = parts[0]?.trim();
+const caption = parts[1]?.trim() || "";
+const link = parts[2]?.trim() || "";
+const buttonText = parts[3]?.trim() || "📲 Download now";
+
+if(!fileId){
+return bot.sendMessage(chatId,"❌ Format incorrect");
+}
+
 const users = getUsers();
 
 let success = 0;
 let failed = 0;
 
+// 👉 bouton inline
+const keyboard = link ? {
+  reply_markup:{
+    inline_keyboard:[
+      [{ text: buttonText, url: link }]
+    ]
+  }
+} : {};
+
 for(const userId of users){
+
 try{
-await bot.sendMessage(userId, message);
+await bot.sendPhoto(userId, fileId, {
+  caption,
+  ...keyboard
+});
 success++;
 }catch(e){
 failed++;
 }
+
 await sleep(50);
+
 }
 
-await bot.sendMessage(channelId, message);
+// 👉 envoi aussi dans le canal
+await bot.sendPhoto(channelId, fileId, {
+  caption,
+  ...keyboard
+});
 
 bot.sendMessage(chatId,
-`📢 Broadcast terminé
+`📢 Broadcast photo terminé
 ✅ ${success} | ❌ ${failed}`
 );
 
