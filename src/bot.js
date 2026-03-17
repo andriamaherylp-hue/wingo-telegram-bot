@@ -191,18 +191,31 @@ bot.on("message", async (msg)=>{
 
   // DASHBOARD
   if(text === "📊 Dashboard"){
-    if(chatId !== ADMIN_ID) return;
 
-    const users = getUsers();
+  if(chatId !== ADMIN_ID) return;
 
-    bot.sendMessage(chatId,
+  const users = getUsers();
+
+  bot.sendMessage(chatId,
+
 `📊 ADMIN DASHBOARD
 
-👥 Users: ${users.length}
-📡 Auto: OFF
-📢 Channel: ${channelId}`
-    );
-  }
+🤖 Bot Status: ✅ Running
+👥 Total Users: ${users.length}
+📡 Auto Predictions: OFF
+📢 Channel: ${channelId}
+
+Admin Commands:
+
+/broadcast MESSAGE
+/broadcast_photo FILEID|CAPTION|LINK
+/broadcast_video FILEID|CAPTION
+/broadcast_doc FILEID|CAPTION
+/stat
+`
+  );
+
+}
 
   // REGISTER
   if(text === "🔗 Register Link"){
