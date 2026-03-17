@@ -4,7 +4,8 @@ const { fetchPrediction } = require('./api');
 const { addUser, getUsers } = require('./users');
 const path = require("path");
 
-const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+// ✅ CORRIGÉ ICI
+const bot = new TelegramBot(TELEGRAM_TOKEN);
 
 const channelId = '@jalwawinssjgame7';
 
