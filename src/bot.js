@@ -8,7 +8,7 @@ const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 const channelId = '@jalwawinssjgame7';
 
-let autoRunning = false; // désactivé
+let autoRunning = false;
 
 
 // images BIG / SMALL
@@ -285,6 +285,74 @@ bot.sendMessage(chatId,
 );
 
 }
+
+});
+
+
+// =============================
+// BROADCAST MESSAGE
+// =============================
+
+bot.onText(/\/broadcast (.+)/, async (msg, match) => {
+
+const chatId = msg.chat.id;
+
+if(chatId !== ADMIN_ID){
+return bot.sendMessage(chatId,"❌ Unauthorized");
+}
+
+const message = match[1];
+
+const users = getUsers();
+
+let success = 0;
+let failed = 0;
+
+for(const userId of users){
+
+try{
+await bot.sendMessage(userId,message);
+success++;
+}catch(e){
+failed++;
+}
+
+}
+
+bot.sendMessage(chatId,
+`📢 Broadcast terminé
+
+✅ Envoyé: ${success}
+❌ Échoué: ${failed}
+👥 Total: ${users.length}`
+);
+
+});
+
+
+// =============================
+// STATS
+// =============================
+
+bot.onText(/\/stat/, (msg) => {
+
+const chatId = msg.chat.id;
+
+if(chatId !== ADMIN_ID){
+return bot.sendMessage(chatId,"❌ Unauthorized");
+}
+
+const users = getUsers();
+
+bot.sendMessage(chatId,
+`📊 BOT STATISTICS
+
+👥 Total Users: ${users.length}
+🤖 Status: Running
+📡 Auto Prediction: OFF
+📢 Channel: ${channelId}
+`
+);
 
 });
 
