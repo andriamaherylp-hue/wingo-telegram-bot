@@ -84,25 +84,56 @@ Please select an option below :`,
 // MARKET MAP
 // =============================
 const marketMap = {
-  1: {market:"0.5", name:"WinGo 30s"},
-  2: {market:"1", name:"WinGo 1min"},
-  3: {market:"3", name:"WinGo 3min"},
-  4: {market:"5", name:"WinGo 5min"}
+  1: {market:"0.5", name:"WinGo 0.5 MIN"},
+  2: {market:"1", name:"WinGo 1 MIN"},
+  3: {market:"3", name:"WinGo 3 MIN"},
+  4: {market:"5", name:"WinGo 5 MIN"}
 };
 
 // =============================
-// FORMAT MESSAGE
+// ✅ FORMAT JALWA PERIOD (RESTAURÉ)
+// =============================
+function convertToJalwaPeriod(period, market){
+  try{
+    const [date,index] = period.split("-");
+    const gameCode = "1000";
+
+    let marketCode = "1";
+    if(market === "0.5") marketCode = "5";
+    if(market === "1") marketCode = "1";
+    if(market === "3") marketCode = "2";
+    if(market === "5") marketCode = "3";
+
+    const formattedIndex = index.padStart(4,"0");
+    return `${date}${gameCode}${marketCode}${formattedIndex}`;
+
+  }catch(e){
+    return period;
+  }
+}
+
+// =============================
+// ✅ FORMAT MESSAGE ORIGINAL
 // =============================
 function formatPrediction(datas, marketName, market){
 
-  return `
-🎰 Prediction for ${marketName.toUpperCase()} 🎰
+  const jalwaPeriod = convertToJalwaPeriod(datas.period, market);
 
-📅 Period: ${datas.period}
+  return `
+🎰 Prediction for ${marketName} 🎰
+
+📅 Period: ${jalwaPeriod}
 💸 Purchase: ${datas.bigSmall}
 
-🔮 Colour: ${datas.color}
-🔢 Numbers: ${datas.digit} or ${datas.digit + 1}
+🔮 Risky Predictions:
+👉 Couleur : ${datas.color}
+👉 Nombres : ${datas.digit} ou ${datas.digit + 1}
+
+💡 Strategy Tip:
+Utiliser la stratégie 2x
+
+📊 Fund Management:
+Gestion en 5 niveaux
 `;
 }
 
@@ -161,13 +192,14 @@ bot.on("message", async (msg)=>{
     bot.sendMessage(chatId,
 `📊 ADMIN DASHBOARD
 
+🤖 Bot Status: ✅ Running
 👥 Users: ${users.length}
 
 Commands:
-/broadcast
-/broadcast_photo
-/broadcast_video
-/broadcast_doc
+/broadcast MESSAGE
+/broadcast_photo FILEID|CAPTION|LINK|BUTTON
+/broadcast_video FILEID|CAPTION
+/broadcast_doc FILEID|CAPTION
 /stat
 `);
   }
@@ -202,9 +234,9 @@ function sleep(ms){
 }
 
 // =============================
-// BROADCAST TEXT (FIX)
+// ✅ BROADCAST TEXT (MULTI-LIGNE FIX)
 // =============================
-bot.onText(/\/broadcast/, async (msg) => {
+bot.onText(/\/broadcast([\s\S]*)/, async (msg, match) => {
 
 const chatId = msg.chat.id;
 
@@ -212,7 +244,7 @@ if(chatId !== ADMIN_ID){
 return bot.sendMessage(chatId,"❌ Unauthorized");
 }
 
-const message = msg.text.replace('/broadcast','').trim();
+const message = match[1].trim();
 
 if(!message){
 return bot.sendMessage(chatId,"❌ Add message");
@@ -221,7 +253,9 @@ return bot.sendMessage(chatId,"❌ Add message");
 const users = getUsers();
 
 for(const userId of users){
+try{
 await bot.sendMessage(userId, message);
+}catch(e){}
 await sleep(50);
 }
 
@@ -232,7 +266,7 @@ bot.sendMessage(chatId,"✅ Broadcast done");
 });
 
 // =============================
-// BROADCAST PHOTO
+// ✅ BROADCAST PHOTO (AVEC BOUTON)
 // =============================
 bot.onText(/\/broadcast_photo ([\s\S]+)/, async (msg, match) => {
 
@@ -244,7 +278,13 @@ const parts = match[1].split("|");
 const fileId = parts[0]?.trim();
 const caption = parts[1]?.trim() || "";
 const link = parts[2]?.trim() || "";
-const buttonText = parts[3]?.trim() || "📲 Download";
+const buttonText = parts[3]?.trim() || "📲 Install App";
+
+if(!fileId){
+return bot.sendMessage(chatId,"❌ Format incorrect");
+}
+
+const users = getUsers();
 
 const keyboard = link ? {
   reply_markup:{
@@ -254,10 +294,10 @@ const keyboard = link ? {
   }
 } : {};
 
-const users = getUsers();
-
 for(const userId of users){
+try{
 await bot.sendPhoto(userId,fileId,{ caption,...keyboard });
+}catch(e){}
 await sleep(50);
 }
 
@@ -279,7 +319,9 @@ const caption = parts[1]?.trim() || "";
 const users = getUsers();
 
 for(const userId of users){
+try{
 await bot.sendVideo(userId,fileId,{ caption });
+}catch(e){}
 await sleep(50);
 }
 
@@ -299,7 +341,9 @@ const caption = parts[1]?.trim() || "";
 const users = getUsers();
 
 for(const userId of users){
+try{
 await bot.sendDocument(userId,fileId,{ caption });
+}catch(e){}
 await sleep(50);
 }
 
