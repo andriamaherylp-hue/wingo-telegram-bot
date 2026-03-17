@@ -290,10 +290,19 @@ bot.sendMessage(chatId,
 
 
 // =============================
-// BROADCAST MESSAGE
+// DELAY FUNCTION (ANTI BAN)
 // =============================
 
-bot.onText(/\/broadcast (.+)/, async (msg, match) => {
+function sleep(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+// =============================
+// BROADCAST TEXTE (MULTI-LIGNE)
+// =============================
+
+bot.onText(/\/broadcast ([\s\S]+)/, async (msg, match) => {
 
 const chatId = msg.chat.id;
 
@@ -302,7 +311,6 @@ return bot.sendMessage(chatId,"❌ Unauthorized");
 }
 
 const message = match[1];
-
 const users = getUsers();
 
 let success = 0;
@@ -311,11 +319,18 @@ let failed = 0;
 for(const userId of users){
 
 try{
-await bot.sendMessage(userId,message);
+await bot.sendMessage(userId, message, {
+parse_mode: "HTML",
+disable_web_page_preview: false
+});
+
 success++;
+
 }catch(e){
 failed++;
 }
+
+await sleep(50); // anti-ban
 
 }
 
@@ -326,6 +341,126 @@ bot.sendMessage(chatId,
 ❌ Échoué: ${failed}
 👥 Total: ${users.length}`
 );
+
+});
+
+
+// =============================
+// BROADCAST PHOTO + TEXTE + BOUTON
+// =============================
+
+bot.onText(/\/broadcast_photo (.+)/, async (msg, match) => {
+
+const chatId = msg.chat.id;
+
+if(chatId !== ADMIN_ID){
+return bot.sendMessage(chatId,"❌ Unauthorized");
+}
+
+// Format attendu : file_id|texte|lien
+const parts = match[1].split("|");
+
+const fileId = parts[0];
+const caption = parts[1] || "";
+const link = parts[2] || "";
+
+const users = getUsers();
+
+let success = 0;
+let failed = 0;
+
+for(const userId of users){
+
+try{
+
+await bot.sendPhoto(userId, fileId, {
+caption: caption,
+reply_markup: link ? {
+inline_keyboard: [[
+{ text: "🔗 Register Now", url: link }
+]]
+} : undefined
+});
+
+success++;
+
+}catch(e){
+failed++;
+}
+
+await sleep(50);
+
+}
+
+bot.sendMessage(chatId,`📢 Photo broadcast terminé\n✅ ${success} | ❌ ${failed}`);
+
+});
+
+
+// =============================
+// BROADCAST VIDEO
+// =============================
+
+bot.onText(/\/broadcast_video (.+)/, async (msg, match) => {
+
+const chatId = msg.chat.id;
+
+if(chatId !== ADMIN_ID){
+return bot.sendMessage(chatId,"❌ Unauthorized");
+}
+
+const parts = match[1].split("|");
+
+const fileId = parts[0];
+const caption = parts[1] || "";
+
+const users = getUsers();
+
+for(const userId of users){
+
+try{
+await bot.sendVideo(userId, fileId, { caption });
+}catch(e){}
+
+await sleep(50);
+
+}
+
+bot.sendMessage(chatId,"📢 Video broadcast envoyé");
+
+});
+
+
+// =============================
+// BROADCAST DOCUMENT
+// =============================
+
+bot.onText(/\/broadcast_doc (.+)/, async (msg, match) => {
+
+const chatId = msg.chat.id;
+
+if(chatId !== ADMIN_ID){
+return bot.sendMessage(chatId,"❌ Unauthorized");
+}
+
+const parts = match[1].split("|");
+
+const fileId = parts[0];
+const caption = parts[1] || "";
+
+const users = getUsers();
+
+for(const userId of users){
+
+try{
+await bot.sendDocument(userId, fileId, { caption });
+}catch(e){}
+
+await sleep(50);
+
+}
+
+bot.sendMessage(chatId,"📢 Document broadcast envoyé");
 
 });
 
