@@ -75,9 +75,7 @@ async function fetchPrediction(market) {
 
       const item = data.items[0];
 
-      // recalculer la vraie période
-      item.period = generatePeriod(market);
-
+      // garder la vraie période API (NE PAS MODIFIER)
       return item;
 
     } else {

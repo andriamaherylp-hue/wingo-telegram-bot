@@ -1,4 +1,4 @@
-const TelegramBot = require('node-telegram-bot-api');
+const TelegramBot = require('node-telegram-bot-api'); 
 const { TELEGRAM_TOKEN, ADMIN_ID } = require('../config/config');
 const { fetchPrediction } = require('./api');
 const { addUser, getUsers } = require('./users');
@@ -93,10 +93,14 @@ const marketMap = {
 };
 
 // =============================
-// ✅ FORMAT JALWA PERIOD (RESTAURÉ)
+// FORMAT JALWA PERIOD 
 // =============================
 function convertToJalwaPeriod(period, market){
   try{
+    if(!period.includes("-")){
+      return period;
+    }
+
     const [date,index] = period.split("-");
     const gameCode = "1000";
 
@@ -107,6 +111,7 @@ function convertToJalwaPeriod(period, market){
     if(market === "5") marketCode = "3";
 
     const formattedIndex = index.padStart(4,"0");
+
     return `${date}${gameCode}${marketCode}${formattedIndex}`;
 
   }catch(e){
@@ -115,7 +120,7 @@ function convertToJalwaPeriod(period, market){
 }
 
 // =============================
-// ✅ FORMAT MESSAGE ORIGINAL
+// FORMAT MESSAGE
 // =============================
 function formatPrediction(datas, marketName, market){
 
@@ -140,7 +145,7 @@ Gestion en 5 niveaux
 }
 
 // =============================
-// SEND PREDICTION
+// SEND PREDICTION (FIX APPLIQUÉ)
 // =============================
 async function sendPrediction(chatId,choice){
 
@@ -149,6 +154,9 @@ async function sendPrediction(chatId,choice){
   }
 
   try{
+    await new Promise(r => setTimeout(r, 2000));
+
+    // ✅ CORRECTION ICI
     const datas = await fetchPrediction(marketMap[choice].market);
 
     const message = formatPrediction(
@@ -236,7 +244,7 @@ function sleep(ms){
 }
 
 // =============================
-// ✅ BROADCAST TEXT (MULTI-LIGNE FIX)
+// BROADCAST TEXT
 // =============================
 bot.onText(/\/broadcast([\s\S]*)/, async (msg, match) => {
 
@@ -264,13 +272,12 @@ await sleep(50);
 await bot.sendMessage(channelId, message);
 
 bot.sendMessage(chatId,`✅ Broadcast done
-                        👥 Total: ${users.length}`
-               );
+👥 Total: ${users.length}`);
 
 });
 
 // =============================
-// ✅ BROADCAST PHOTO (AVEC BOUTON)
+// BROADCAST PHOTO
 // =============================
 bot.onText(/\/broadcast_photo ([\s\S]+)/, async (msg, match) => {
 
