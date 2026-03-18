@@ -71,8 +71,10 @@ bot.onText(/\/start/, (msg) => {
     bot.sendMessage(chatId,"👑 Admin Panel",adminKeyboard);
   } else {
     bot.sendMessage(chatId,
-`🚀 Welcome to Wingo Predict Bot PRO
-🎮 The Best Betting Platforms ! 🔥
+`✨ Welcome to Wingo Predict Bot PRO ✨  
+🎮 The most reliable and exciting prediction platform! 🔥
+Join our community 👉 @Jalwa_Game_Channel
+🎁 Tutorials, gifts, and exclusive surprises await you 💶🥳
 
 Please select an option below :`,
     userKeyboard
@@ -205,11 +207,11 @@ Commands:
   }
 
   if(text === "🔗 Register Link"){
-    bot.sendMessage(chatId,"https://okwin.bio/#/register?invitationCode=75541615988");
+    bot.sendMessage(chatId,"🔗 Register Link:👇\nhttps://okwin.bio/#/register?invitationCode=75541615988");
   }
 
   if(text === "📢 Prediction Channel"){
-    bot.sendMessage(chatId,"https://t.me/vipokwinbig");
+    bot.sendMessage(chatId,"✅ Get Fast And Accurate Predictions and Gift Codes:\nhttps://t.me/vipokwinbig");
   }
 
 });
@@ -261,7 +263,9 @@ await sleep(50);
 
 await bot.sendMessage(channelId, message);
 
-bot.sendMessage(chatId,"✅ Broadcast done");
+bot.sendMessage(chatId,`✅ Broadcast done
+                        👥 Total: ${users.length}`
+               );
 
 });
 

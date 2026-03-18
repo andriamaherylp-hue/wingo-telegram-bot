@@ -31,9 +31,12 @@ app.post(`/bot${TELEGRAM_TOKEN}`, (req, res) => {
   res.sendStatus(200);
 });
 
-// test route
+// route
+
+app.use(express.static('public'));
+
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.send('Wingo Bot is running, go go goooooo');
 });
 
 // start server
