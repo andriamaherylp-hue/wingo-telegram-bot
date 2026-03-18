@@ -1,6 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api'); 
 const { TELEGRAM_TOKEN, ADMIN_ID } = require('../config/config');
-const { fetchPrediction } = require('./api');
+const { fetchPrediction, fetchNextPeriod } = require('./api'); // ✅ ajout
 const { addUser, getUsers } = require('./users');
 const path = require("path");
 
@@ -145,7 +145,7 @@ Gestion en 5 niveaux
 }
 
 // =============================
-// SEND PREDICTION (FIX APPLIQUÉ)
+// SEND PREDICTION (SYNC PRO)
 // =============================
 async function sendPrediction(chatId,choice){
 
@@ -154,15 +154,29 @@ async function sendPrediction(chatId,choice){
   }
 
   try{
-    await new Promise(r => setTimeout(r, 2000));
 
-    // ✅ CORRECTION ICI
-    const datas = await fetchPrediction(marketMap[choice].market);
+    const market = marketMap[choice].market;
+
+    // 🔥 récupérer timing réel
+    const next = await fetchNextPeriod(market);
+
+    let waitTime = next.remain;
+
+    // sécurité anti bug API
+    if(waitTime < 1 || waitTime > 60){
+      waitTime = 5;
+    }
+
+    // 🔥 attendre fin du round
+    await new Promise(r => setTimeout(r, (waitTime + 1) * 1000));
+
+    // 🔥 récupérer nouvelle prédiction
+    const datas = await fetchPrediction(market);
 
     const message = formatPrediction(
       datas,
       marketMap[choice].name,
-      marketMap[choice].market
+      market
     );
 
     if(choice === 2){
@@ -176,7 +190,7 @@ async function sendPrediction(chatId,choice){
     }
 
   }catch(e){
-    bot.sendMessage(chatId,"❌ Prediction error");
+    bot.sendMessage(chatId,"❌ Prediction error (sync failed)");
   }
 }
 

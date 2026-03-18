@@ -1,6 +1,7 @@
-const express = require('express');
+const express = require('express'); 
 const bot = require('./src/bot');
 const { TELEGRAM_TOKEN } = require('./config/config');
+const { fetchNextPeriod } = require('./src/api'); // ✅ AJOUT
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -12,7 +13,7 @@ const URL = process.env.RENDER_EXTERNAL_URL;
 // WEBHOOK CONFIG
 // =============================
 
-// supprimer ancien webhook (important)
+// supprimer ancien webhook
 bot.deleteWebHook().then(() => {
   console.log("🧹 Old webhook removed");
 });
@@ -31,15 +32,36 @@ app.post(`/bot${TELEGRAM_TOKEN}`, (req, res) => {
   res.sendStatus(200);
 });
 
-// route
-
+// =============================
+// STATIC
+// =============================
 app.use(express.static('public'));
 
-app.get('/', (req, res) => {
-  res.send('Wingo Bot is running, go go goooooo');
+// =============================
+// ✅ ROUTE CORRIGÉE (PLUS D’ERREUR API)
+// =============================
+app.get('/', async (req, res) => {
+
+  try{
+    const data = await fetchNextPeriod("1");
+
+    res.send(`
+      <h1>🤖 Wingo Bot Running</h1>
+      <p>⏱ Temps restant : ${data.remain}s</p>
+    `);
+
+  }catch(e){
+    res.send(`
+      <h1>❌ API ERROR</h1>
+      <p>${e.message}</p>
+    `);
+  }
+
 });
 
-// start server
+// =============================
+// START SERVER
+// =============================
 app.listen(PORT, () => {
   console.log(`🚀 Serveur Express lancé sur le port ${PORT}`);
 });
